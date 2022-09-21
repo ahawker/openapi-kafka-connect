@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/../apicurio-registry-go-sdk/.idea/apicurio-registry-go-sdk.iml" filepath="$PROJECT_DIR$/../apicurio-registry-go-sdk/.idea/apicurio-registry-go-sdk.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/openapi-kafka-connect.iml" filepath="$PROJECT_DIR$/.idea/openapi-kafka-connect.iml" />
+    </modules>
+  </component>
+</project>

@@ -1,0 +1,46 @@
+openapi: 3.0.0
+info:
+  description: Kafka Connect REST API https://docs.confluent.io/platform/current/connect/references/restapi.html
+  title: Kafka Connect REST API
+  version: 0.1.9
+servers:
+- url: /
+paths:
+  /:
+    get:
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/inline_response_200'
+          description: hi
+      summary: Top-level (root) request that gets the version of the Connect worker
+        that serves the REST request, the git commit ID of the source code, and the
+        Kafka cluster ID that the worker is connected to.
+  /connectors:
+    get:
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                additionalProperties: true
+                type: object
+          description: Success?
+      summary: Get a list of active connectors
+components:
+  schemas:
+    inline_response_200:
+      example:
+        kafka_cluster_id: kafka_cluster_id
+        commit: commit
+        version: version
+      properties:
+        version:
+          type: string
+        commit:
+          type: string
+        kafka_cluster_id:
+          type: string
+      type: object

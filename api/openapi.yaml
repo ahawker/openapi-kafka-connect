@@ -1,0 +1,1338 @@
+openapi: 3.0.0
+info:
+  description: Kafka Connect REST API https://docs.confluent.io/platform/current/connect/references/restapi.html
+  title: Kafka Connect REST API
+  version: 0.1.9
+servers:
+- url: /
+paths:
+  /:
+    get:
+      operationId: getClusterInfo
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetClusterInfoResponse'
+          description: Cluster info retrieved successfully.
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+            text/plain:
+              schema:
+                type: string
+          description: Internal Server Error.
+        "503":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+            text/plain:
+              schema:
+                type: string
+          description: Service Unavailable.
+      summary: "Top-level (root) request that gets the version of the Connect worker\
+        \ that serves the REST request, the git commit ID of the source code, and\
+        \ the Kafka cluster ID that the worker is connected to."
+  /connectors:
+    get:
+      operationId: listConnectors
+      parameters:
+      - description: Retrieves additional state/configuration information for each
+          of the connectors returned in the API call.
+        explode: true
+        in: query
+        name: expand
+        required: false
+        schema:
+          items:
+            enum:
+            - info
+            - status
+            type: string
+          type: array
+        style: form
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListConnectorsResponse'
+          description: Connectors fetched successfully.
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+            text/plain:
+              schema:
+                type: string
+          description: Internal Server Error.
+        "503":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+            text/plain:
+              schema:
+                type: string
+          description: Service Unavailable.
+      summary: Get a list of active connectors.
+    post:
+      operationId: createConnector
+      requestBody:
+        $ref: '#/components/requestBodies/CreateConnectorRequest'
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateConnectorResponse'
+          description: New connector created successfully.
+        "409":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+            text/plain:
+              schema:
+                type: string
+          description: Conflict. Rebalance in progress.
+        "422":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+            text/plain:
+              schema:
+                type: string
+          description: Unprocessable Entity.
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+            text/plain:
+              schema:
+                type: string
+          description: Internal Server Error.
+        "503":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+            text/plain:
+              schema:
+                type: string
+          description: Service Unavailable.
+      summary: "Create a new connector, returning the current connector info if successful.\
+        \ Return 409 (Conflict) if rebalance is in process, or if the connector already\
+        \ exists."
+  /connectors/{name}:
+    delete:
+      operationId: deleteConnector
+      parameters:
+      - description: Name of the connector.
+        explode: false
+        in: path
+        name: name
+        required: true
+        schema:
+          type: string
+        style: simple
+      responses:
+        "204":
+          description: No Content
+        "409":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+            text/plain:
+              schema:
+                type: string
+          description: Conflict. Rebalance in progress.
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+            text/plain:
+              schema:
+                type: string
+          description: Internal Server Error.
+        "503":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+            text/plain:
+              schema:
+                type: string
+          description: Service Unavailable.
+      summary: "Delete a connector, halting all tasks and deleting its configuration."
+    get:
+      operationId: getConnector
+      parameters:
+      - description: Name of the connector.
+        explode: false
+        in: path
+        name: name
+        required: true
+        schema:
+          type: string
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetConnectorResponse'
+          description: Connector fetched successfully.
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+            text/plain:
+              schema:
+                type: string
+          description: Internal Server Error.
+        "503":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+            text/plain:
+              schema:
+                type: string
+          description: Service Unavailable.
+      summary: Get information about the connector.
+  /connectors/{name}/config:
+    get:
+      operationId: getConnectorConfig
+      parameters:
+      - description: Name of the connector.
+        explode: false
+        in: path
+        name: name
+        required: true
+        schema:
+          type: string
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetConnectorConfigResponse'
+          description: Connector config fetched successfully.
+        "409":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+            text/plain:
+              schema:
+                type: string
+          description: Conflict. Rebalance in progress.
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+            text/plain:
+              schema:
+                type: string
+          description: Internal Server Error.
+        "503":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+            text/plain:
+              schema:
+                type: string
+          description: Service Unavailable.
+      summary: Get the configuration for the connector.
+    put:
+      operationId: updateConnectorConfig
+      parameters:
+      - description: Name of the connector.
+        explode: false
+        in: path
+        name: name
+        required: true
+        schema:
+          type: string
+        style: simple
+      requestBody:
+        $ref: '#/components/requestBodies/UpdateConnectorConfigRequest'
+      responses:
+        "200":
+          $ref: '#/components/responses/UpdateConnectorConfigResponse'
+        "201":
+          $ref: '#/components/responses/UpdateConnectorConfigResponse'
+        "409":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+            text/plain:
+              schema:
+                type: string
+          description: Conflict. Rebalance in progress.
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+            text/plain:
+              schema:
+                type: string
+          description: Internal Server Error.
+        "503":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+            text/plain:
+              schema:
+                type: string
+          description: Service Unavailable.
+      summary: Update or create a connector with the given configuration.
+  /connectors/{name}/status:
+    get:
+      operationId: getConnectorStatus
+      parameters:
+      - description: Name of the connector.
+        explode: false
+        in: path
+        name: name
+        required: true
+        schema:
+          type: string
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetConnectorStatusResponse'
+          description: Connector status fetched successfully.
+        "409":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+            text/plain:
+              schema:
+                type: string
+          description: Conflict. Rebalance in progress.
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+            text/plain:
+              schema:
+                type: string
+          description: Internal Server Error.
+        "503":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+            text/plain:
+              schema:
+                type: string
+          description: Service Unavailable.
+      summary: "Gets the current status of the connector, including:\n* whether it\
+        \ is running or restarting, or if it has failed or paused\n* which worker\
+        \ it is assigned to\n* error information if it has failed\n* the state of\
+        \ all its tasks\n"
+  /connectors/{name}/restart:
+    post:
+      operationId: restartConnector
+      parameters:
+      - description: Name of the connector.
+        explode: false
+        in: path
+        name: name
+        required: true
+        schema:
+          type: string
+        style: simple
+      - description: Specifies whether to restart the connector instance and task
+          instances (includeTasks=true) or just the connector instance (includeTasks=false).
+        explode: true
+        in: query
+        name: includeTasks
+        required: false
+        schema:
+          type: boolean
+        style: form
+      - description: Specifies whether to restart just the instances with a FAILED
+          status (onlyFailed=true) or all instances (onlyFailed=false).
+        explode: true
+        in: query
+        name: onlyFailed
+        required: false
+        schema:
+          type: boolean
+        style: form
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RestartConnectorResponse'
+          description: Connector restarted successfully.
+        "202":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RestartConnectorResponse'
+          description: Connector restarted successfully.
+        "204":
+          description: No Content
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+            text/plain:
+              schema:
+                type: string
+          description: Resource not found.
+        "409":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+            text/plain:
+              schema:
+                type: string
+          description: Conflict. Rebalance in progress.
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+            text/plain:
+              schema:
+                type: string
+          description: Internal Server Error.
+        "503":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+            text/plain:
+              schema:
+                type: string
+          description: Service Unavailable.
+      summary: Restart the connector. You may use the following query parameters to
+        restart any combination of the Connector and/or Task instances for the connector.
+  /connectors/{name}/pause:
+    put:
+      operationId: pauseConnector
+      parameters:
+      - description: Name of the connector.
+        explode: false
+        in: path
+        name: name
+        required: true
+        schema:
+          type: string
+        style: simple
+      responses:
+        "202":
+          description: Accepted
+        "409":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+            text/plain:
+              schema:
+                type: string
+          description: Conflict. Rebalance in progress.
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+            text/plain:
+              schema:
+                type: string
+          description: Internal Server Error.
+        "503":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+            text/plain:
+              schema:
+                type: string
+          description: Service Unavailable.
+      summary: "Pause the connector and its tasks, which stops message processing\
+        \ until the connector is resumed. This call asynchronous and the tasks will\
+        \ not transition to PAUSED state at the same time."
+  /connectors/{name}/resume:
+    put:
+      operationId: resumeConnector
+      parameters:
+      - description: Name of the connector.
+        explode: false
+        in: path
+        name: name
+        required: true
+        schema:
+          type: string
+        style: simple
+      responses:
+        "202":
+          description: Accepted
+        "409":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+            text/plain:
+              schema:
+                type: string
+          description: Conflict. Rebalance in progress.
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+            text/plain:
+              schema:
+                type: string
+          description: Internal Server Error.
+        "503":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+            text/plain:
+              schema:
+                type: string
+          description: Service Unavailable.
+      summary: Resume a paused connector or do nothing if the connector is not paused.
+        This call asynchronous and the tasks will not transition to RUNNING state
+        at the same time.
+  /connectors/{name}/topics:
+    get:
+      operationId: listConnectorTopics
+      parameters:
+      - description: Name of the connector.
+        explode: false
+        in: path
+        name: name
+        required: true
+        schema:
+          type: string
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListConnectorTopicsResponse'
+          description: Connector topics fetched successfully.
+        "409":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+            text/plain:
+              schema:
+                type: string
+          description: Conflict. Rebalance in progress.
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+            text/plain:
+              schema:
+                type: string
+          description: Internal Server Error.
+        "503":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+            text/plain:
+              schema:
+                type: string
+          description: Service Unavailable.
+      summary: "Returns a list of connector topic names. There is no defined order\
+        \ in which the topics are returned and consecutive calls may return the same\
+        \ topic names but in different order.\nThis request is independent of whether\
+        \ a connector is running, and will return an empty set of topics, both for\
+        \ connectors that don't have active topics as well as non-existent connectors.\n"
+  /connectors/{name}/tasks:
+    get:
+      operationId: listConnectorTasks
+      parameters:
+      - description: Name of the connector.
+        explode: false
+        in: path
+        name: name
+        required: true
+        schema:
+          type: string
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListConnectorTasksResponse'
+          description: Connector tasks fetched successfully.
+        "409":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+            text/plain:
+              schema:
+                type: string
+          description: Conflict. Rebalance in progress.
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+            text/plain:
+              schema:
+                type: string
+          description: Internal Server Error.
+        "503":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+            text/plain:
+              schema:
+                type: string
+          description: Service Unavailable.
+      summary: Get a list of tasks currently running for the connector.
+  /connectors/{name}/tasks/{task_id}/status:
+    get:
+      operationId: getConnectorTaskStatus
+      parameters:
+      - description: Name of the connector.
+        explode: false
+        in: path
+        name: name
+        required: true
+        schema:
+          type: string
+        style: simple
+      - description: ID of the task.
+        explode: false
+        in: path
+        name: task_id
+        required: true
+        schema:
+          type: integer
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetConnectorTaskStatusResponse'
+          description: Connector task status fetched successfully.
+        "409":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+            text/plain:
+              schema:
+                type: string
+          description: Conflict. Rebalance in progress.
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+            text/plain:
+              schema:
+                type: string
+          description: Internal Server Error.
+        "503":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+            text/plain:
+              schema:
+                type: string
+          description: Service Unavailable.
+      summary: Get a task's status.
+  /connectors/{name}/tasks/{task_id}/restart:
+    post:
+      operationId: restartConnectorTask
+      parameters:
+      - description: Name of the connector.
+        explode: false
+        in: path
+        name: name
+        required: true
+        schema:
+          type: string
+        style: simple
+      - description: ID of the task.
+        explode: false
+        in: path
+        name: task_id
+        required: true
+        schema:
+          type: integer
+        style: simple
+      responses:
+        "200":
+          description: OK.
+        "409":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+            text/plain:
+              schema:
+                type: string
+          description: Conflict. Rebalance in progress.
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+            text/plain:
+              schema:
+                type: string
+          description: Internal Server Error.
+        "503":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+            text/plain:
+              schema:
+                type: string
+          description: Service Unavailable.
+      summary: Restart an individual task.
+components:
+  parameters:
+    ConnectorNameParameter:
+      description: Name of the connector.
+      explode: false
+      in: path
+      name: name
+      required: true
+      schema:
+        type: string
+      style: simple
+    TaskIDParameter:
+      description: ID of the task.
+      explode: false
+      in: path
+      name: task_id
+      required: true
+      schema:
+        type: integer
+      style: simple
+    ExpandParameter:
+      description: Retrieves additional state/configuration information for each of
+        the connectors returned in the API call.
+      explode: true
+      in: query
+      name: expand
+      required: false
+      schema:
+        items:
+          enum:
+          - info
+          - status
+          type: string
+        type: array
+      style: form
+    IncludeTasksParameter:
+      description: Specifies whether to restart the connector instance and task instances
+        (includeTasks=true) or just the connector instance (includeTasks=false).
+      explode: true
+      in: query
+      name: includeTasks
+      required: false
+      schema:
+        type: boolean
+      style: form
+    OnlyFailedParameter:
+      description: Specifies whether to restart just the instances with a FAILED status
+        (onlyFailed=true) or all instances (onlyFailed=false).
+      explode: true
+      in: query
+      name: onlyFailed
+      required: false
+      schema:
+        type: boolean
+      style: form
+  requestBodies:
+    CreateConnectorRequest:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/CreateConnectorRequest'
+      description: New connector request.
+      required: true
+    UpdateConnectorConfigRequest:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/UpdateConnectorConfigRequest'
+      description: Update connector config request.
+      required: true
+  responses:
+    GetClusterInfoResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/GetClusterInfoResponse'
+      description: Cluster info retrieved successfully.
+    CreateConnectorResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/CreateConnectorResponse'
+      description: New connector created successfully.
+    GetConnectorResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/GetConnectorResponse'
+      description: Connector fetched successfully.
+    ListConnectorsResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ListConnectorsResponse'
+      description: Connectors fetched successfully.
+    GetConnectorStatusResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/GetConnectorStatusResponse'
+      description: Connector status fetched successfully.
+    GetConnectorConfigResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/GetConnectorConfigResponse'
+      description: Connector config fetched successfully.
+    RestartConnectorResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/RestartConnectorResponse'
+      description: Connector restarted successfully.
+    ListConnectorTopicsResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ListConnectorTopicsResponse'
+      description: Connector topics fetched successfully.
+    ListConnectorTasksResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ListConnectorTasksResponse'
+      description: Connector tasks fetched successfully.
+    GetConnectorTaskStatusResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/GetConnectorTaskStatusResponse'
+      description: Connector task status fetched successfully.
+    OKResponse:
+      description: OK.
+    CreatedResponse:
+      description: Created
+    AcceptedResponse:
+      description: Accepted
+    NoContentResponse:
+      description: No Content
+    ForbiddenResponse:
+      description: Forbidden
+    ConflictResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+        text/plain:
+          schema:
+            type: string
+      description: Conflict. Rebalance in progress.
+    NotFoundResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+        text/plain:
+          schema:
+            type: string
+      description: Resource not found.
+    UnprocessableEntityResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+        text/plain:
+          schema:
+            type: string
+      description: Unprocessable Entity.
+    ServerErrorResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+        text/plain:
+          schema:
+            type: string
+      description: Internal Server Error.
+    ServiceUnavailableResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+        text/plain:
+          schema:
+            type: string
+      description: Service Unavailable.
+    UnexpectedErrorResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+        text/plain:
+          schema:
+            type: string
+      description: Unexpected Error.
+  schemas:
+    Error:
+      description: Generic error.
+      properties:
+        error_code:
+          description: Error code.
+          type: integer
+        message:
+          description: Error message.
+          type: string
+      type: object
+    GetClusterInfoResponse:
+      example:
+        kafka_cluster_id: kafka_cluster_id
+        commit: commit
+        version: version
+      properties:
+        version:
+          description: Connect worker version.
+          type: string
+        commit:
+          description: git commit ID.
+          type: string
+        kafka_cluster_id:
+          description: Kafka cluster ID.
+          type: string
+      type: object
+    CreateConnectorRequest:
+      example:
+        name: name
+        config:
+          key: config
+      properties:
+        name:
+          description: Name of the connector.
+          type: string
+        config:
+          additionalProperties:
+            type: string
+          description: Configuration of a connector/task/worker. All keys/values should
+            be strings.
+          type: object
+      type: object
+    CreateConnectorResponse:
+      example:
+        name: name
+        config:
+          key: config
+        tasks:
+        - task: 0
+          connector: connector
+        - task: 0
+          connector: connector
+      properties:
+        name:
+          description: Name of the connector.
+          type: string
+        config:
+          additionalProperties:
+            type: string
+          description: Configuration of a connector/task/worker. All keys/values should
+            be strings.
+          type: object
+        tasks:
+          description: List of active tasks generated by the connector.
+          items:
+            $ref: '#/components/schemas/CreateConnectorResponse_tasks_inner'
+          type: array
+      type: object
+    ListConnectorsResponse:
+      additionalProperties:
+        $ref: '#/components/schemas/ListConnectorsResponse_value'
+      description: List of connectors.
+      type: object
+    GetConnectorResponse:
+      description: Connector info.
+      example:
+        name: name
+        config:
+          key: config
+        tasks:
+        - task: 0
+          connector: connector
+        - task: 0
+          connector: connector
+      properties:
+        name:
+          description: Name of the connector.
+          type: string
+        config:
+          additionalProperties:
+            type: string
+          description: Configuration of a connector/task/worker. All keys/values should
+            be strings.
+          type: object
+        tasks:
+          description: List of active tasks generated by the connector.
+          items:
+            $ref: '#/components/schemas/CreateConnectorResponse_tasks_inner'
+          type: array
+      type: object
+    GetConnectorStatusResponse:
+      description: Connector status.
+      example:
+        connector:
+          state: null
+          worker_id: worker_id
+        name: name
+        tasks:
+        - trace: trace
+          id: 0
+          state: null
+          worker_id: worker_id
+        - trace: trace
+          id: 0
+          state: null
+          worker_id: worker_id
+      properties:
+        name:
+          description: Name of the connector.
+          type: string
+        connector:
+          $ref: '#/components/schemas/GetConnectorStatusResponse_connector'
+        tasks:
+          description: List of task status for the connector.
+          items:
+            $ref: '#/components/schemas/GetConnectorStatusResponse_tasks_inner'
+          type: array
+      type: object
+    GetConnectorConfigResponse:
+      additionalProperties:
+        type: string
+      description: Connector configuration.
+      type: object
+    UpdateConnectorConfigRequest:
+      additionalProperties:
+        type: string
+      description: Connector configuration.
+      type: object
+    UpdateConnectorConfigResponse:
+      description: Connector info.
+      properties:
+        name:
+          description: Name of the connector.
+          type: string
+        config:
+          additionalProperties:
+            type: string
+          description: Configuration of a connector/task/worker. All keys/values should
+            be strings.
+          type: object
+        tasks:
+          description: List of active tasks generated by the connector.
+          items:
+            $ref: '#/components/schemas/CreateConnectorResponse_tasks_inner'
+          type: array
+      type: object
+    RestartConnectorResponse:
+      description: Connector restarted.
+      example:
+        connector:
+          state: null
+          worker_id: worker_id
+        name: name
+        tasks:
+        - trace: trace
+          id: 0
+          state: null
+          worker_id: worker_id
+        - trace: trace
+          id: 0
+          state: null
+          worker_id: worker_id
+      properties:
+        name:
+          description: Name of the connector.
+          type: string
+        connector:
+          $ref: '#/components/schemas/GetConnectorStatusResponse_connector'
+        tasks:
+          description: List of task status for the connector.
+          items:
+            $ref: '#/components/schemas/GetConnectorStatusResponse_tasks_inner'
+          type: array
+      type: object
+    ListConnectorTopicsResponse:
+      additionalProperties: true
+      description: Connector topics fetched.
+      type: object
+    ListConnectorTasksResponse:
+      description: Connector tasks fetched.
+      example:
+        tasks:
+        - id:
+            task: 0
+            connector: connector
+          config:
+            key: config
+        - id:
+            task: 0
+            connector: connector
+          config:
+            key: config
+      properties:
+        tasks:
+          description: List of tasks for the connector.
+          items:
+            $ref: '#/components/schemas/ListConnectorTasksResponse_tasks_inner'
+          type: array
+      type: object
+    GetConnectorTaskStatusResponse:
+      description: Task status.
+      example:
+        state: null
+        worker_id: worker_id
+      properties:
+        state:
+          $ref: '#/components/schemas/State'
+        worker_id:
+          description: ID of the worker.
+          type: string
+      type: object
+    Config:
+      additionalProperties:
+        type: string
+      description: Configuration of a connector/task/worker. All keys/values should
+        be strings.
+      type: object
+    ConnectorName:
+      description: Name of the connector.
+      type: string
+    ConnectorType:
+      description: Type of connector.
+      enum:
+      - SINK
+      - SOURCE
+      type: string
+    TaskID:
+      description: ID of the task.
+      type: integer
+    TaskTrace:
+      description: Stack trace information if the task has failed.
+      type: string
+    State:
+      description: State of a connector/task/worker.
+      enum:
+      - UNASSIGNED
+      - RUNNING
+      - PAUSED
+      - FAILED
+      - RESTARTING
+      - DESTROYED
+      type: string
+    WorkerID:
+      description: ID of the worker.
+      type: string
+    CreateConnectorResponse_tasks_inner:
+      example:
+        task: 0
+        connector: connector
+      properties:
+        connector:
+          description: Name of the connector.
+          type: string
+        task:
+          description: ID of the task.
+          type: integer
+      type: object
+    ListConnectorsResponse_value_info_tasks_inner:
+      properties:
+        connector:
+          description: Name of the connector.
+          type: string
+        task:
+          description: ID of the task.
+          type: integer
+        config:
+          additionalProperties:
+            type: string
+          description: Configuration of a connector/task/worker. All keys/values should
+            be strings.
+          type: object
+      type: object
+    ListConnectorsResponse_value_info:
+      properties:
+        name:
+          description: Name of the connector.
+          type: string
+        type:
+          $ref: '#/components/schemas/ConnectorType'
+        config:
+          additionalProperties:
+            type: string
+          description: Configuration of a connector/task/worker. All keys/values should
+            be strings.
+          type: object
+        tasks:
+          description: List of tasks for the connector.
+          items:
+            $ref: '#/components/schemas/ListConnectorsResponse_value_info_tasks_inner'
+          type: array
+      type: object
+    ListConnectorsResponse_value_status_connector:
+      description: Connector status.
+      properties:
+        id:
+          description: ID of the worker.
+          type: string
+        state:
+          $ref: '#/components/schemas/State'
+      type: object
+    ListConnectorsResponse_value_status_tasks_inner:
+      description: Task status.
+      properties:
+        id:
+          description: ID of the task.
+          type: integer
+        state:
+          $ref: '#/components/schemas/State'
+        trace:
+          description: Stack trace information if the task has failed.
+          type: string
+        worker_id:
+          description: ID of the worker.
+          type: string
+      type: object
+    ListConnectorsResponse_value_status:
+      properties:
+        name:
+          description: Name of the connector.
+          type: string
+        type:
+          $ref: '#/components/schemas/ConnectorType'
+        connector:
+          $ref: '#/components/schemas/ListConnectorsResponse_value_status_connector'
+        tasks:
+          description: List of task statuses for the connector.
+          items:
+            $ref: '#/components/schemas/ListConnectorsResponse_value_status_tasks_inner'
+          type: array
+      type: object
+    ListConnectorsResponse_value:
+      description: Connector with expanded info and status details.
+      properties:
+        info:
+          $ref: '#/components/schemas/ListConnectorsResponse_value_info'
+        status:
+          $ref: '#/components/schemas/ListConnectorsResponse_value_status'
+      type: object
+    GetConnectorStatusResponse_connector:
+      description: Connector status.
+      example:
+        state: null
+        worker_id: worker_id
+      properties:
+        state:
+          $ref: '#/components/schemas/State'
+        worker_id:
+          description: ID of the worker.
+          type: string
+      type: object
+    GetConnectorStatusResponse_tasks_inner:
+      example:
+        trace: trace
+        id: 0
+        state: null
+        worker_id: worker_id
+      properties:
+        id:
+          description: ID of the task.
+          type: integer
+        trace:
+          description: Stack trace information if the task has failed.
+          type: string
+        state:
+          $ref: '#/components/schemas/State'
+        worker_id:
+          description: ID of the worker.
+          type: string
+      type: object
+    ListConnectorTasksResponse_tasks_inner_id:
+      description: Task ID.
+      example:
+        task: 0
+        connector: connector
+      properties:
+        task:
+          description: ID of the task.
+          type: integer
+        connector:
+          description: Name of the connector.
+          type: string
+      type: object
+    ListConnectorTasksResponse_tasks_inner:
+      example:
+        id:
+          task: 0
+          connector: connector
+        config:
+          key: config
+      properties:
+        id:
+          $ref: '#/components/schemas/ListConnectorTasksResponse_tasks_inner_id'
+        config:
+          additionalProperties:
+            type: string
+          description: Configuration of a connector/task/worker. All keys/values should
+            be strings.
+          type: object
+      type: object
